@@ -2,7 +2,7 @@
 # Chained Hash Map Implementation
 # Author: Giannis Loizou
 # Description: Custom implementation of a chained hash table
-# (linked-list based collision handling) with rehashing support.
+# linked-list based collision handling with rehashing support.
 # ==============================
 
 class EmptyHash(Exception):
@@ -157,18 +157,18 @@ class ChainedHash:
 
 
 # ===========================================================
-#                TEST DRIVER SECTION (MAIN)
+#                TEST DRIVER (MAIN)
 # ===========================================================
 
 if __name__ == "__main__":
 
     hash_table = ChainedHash()
-    
+
     # Test 1: Insert multiple elements to trigger rehashing
     print("Test 1: Inserting elements to trigger rehashing")
     for i in range(20):
         hash_table.insert(i, f"Data {i}")
-    hash_table.display()  # Check if rehashing has occurred and elements are distributed properly
+    hash_table.display()
 
     # Test 2: Retrieve inserted elements
     print("\nTest 2: Retrieving elements")
@@ -181,68 +181,76 @@ if __name__ == "__main__":
     print("\nTest 3: Deleting elements")
     hash_table.delete(5)
     hash_table.delete(15)
-    hash_table.display()  # Verify that the elements were deleted
+    hash_table.display()
 
-    # Test 4: Retrieve deleted elements to ensure they cannot be found
+    # Test 4: Retrieve deleted elements
     print("\nTest 4: Retrieving deleted elements")
     assert hash_table.retrieve(5) is None, "Should return None for deleted key 5"
     assert hash_table.retrieve(15) is None, "Should return None for deleted key 15"
-    
-    # Test 5: Check if deletion works at the start and end of a chain
+
+    # Test 5: Deleting first and last elements in a chain
     print("\nTest 5: Deleting first and last elements in a chain")
-    hash_table.delete(0)  # Assuming 0 is at the start of the chain after rehashing
-    hash_table.delete(19)  # Assuming 19 is at the end of the chain after rehashing
-    hash_table.display()  # Verify correctness after these deletions
-    
-    # Test 6: Inserting duplicates (should only add once)
+    hash_table.delete(0)
+    hash_table.delete(19)
+    hash_table.display()
+
+    # Test 6: Inserting duplicate keys
     print("\nTest 6: Inserting duplicate keys")
     print(hash_table.retrieve(10))
     hash_table.insert(10, "New Data for 10")
     print(hash_table.retrieve(10))
-  
 
     # Test 7: Handling empty hash table and exceptions
     print("\nTest 7: Retrieving from an empty hash table")
     empty_table = ChainedHash()
     try:
         empty_table.retrieve(1)
-    except EmptyHash as e:
+    except EmptyHash:
         print("Caught expected EmptyHash exception.")
-    
+
     # Test 8: Delete from an empty hash table
     print("\nTest 8: Deleting from an empty hash table")
-    empty_table.delete(1)  # Should print "Can not delete. No such key exists."
-    
-    # Test 9: Edge case - Inserting None as data
+    try:
+        empty_table.delete(1)
+    except Exception as e:
+        print(f"Error while deleting from empty table: {e}")
+
+    # Test 9: Inserting None as data
     print("\nTest 9: Inserting None as data")
     hash_table.insert(25, None)
     assert hash_table.retrieve(25) == (25, None), "Failed to handle None as valid data"
     print("Inserted None as data successfully.")
-    
+
+    # Additional inserts for stress testing
     for i in range(0, 1000, 31):
         hash_table.insert(i, f"Data {i}")
-    hash_table.display()  # Check if rehashing has occurred and elements are distributed properly
+    hash_table.display()
     for i in range(0, 1000, 7):
         hash_table.insert(i, f"Data {i}")
-    hash_table.display()  
-    
-    test_keys = [0, 961, 644, 20, 999, 50]  # Replace with keys you know exist or don't exist in your table
-    for key in test_keys:
-        result = hash_table.retrieve(key)
-        if result is not None:
-            print(f"Key {key} found with value: {result}")
-        else:
-            print(f"Key {key} not found.")
+    hash_table.display()
 
+    # Test random retrievals
+    test_keys = [0, 961, 644, 20, 999, 50]
+    for key in test_keys:
+        try:
+            result = hash_table.retrieve(key)
+            if result is not None:
+                print(f"Key {key} found with value: {result}")
+            else:
+                print(f"Key {key} not found.")
+        except EmptyHash:
+            print("Hash table is currently empty. Cannot retrieve.")
+
+    # Additional reinsertions to test rehashing stability
     for i in range(0, 1000, 31):
         hash_table.insert(i, f"Data {i}")
-        hash_table.display() 
+        hash_table.display()
 
     # --- Interactive Menu System ---
     print("\n" + "="*50)
     print("INTERACTIVE HASH TABLE MANAGEMENT SYSTEM")
     print("="*50)
-    
+
     while True:
         print("\nOptions:")
         print("1. Insert key-value pair")
@@ -251,59 +259,58 @@ if __name__ == "__main__":
         print("4. Display hash table structure")
         print("5. Show table statistics")
         print("6. Exit")
-        
+
         choice = input("\nEnter your choice (1-6): ").strip()
-        
-        if choice == '1':
-            # Insert operation
-            try:
+
+        try:
+            if choice == '1':
+                # Insert operation
                 key = int(input("Enter key (integer): "))
                 data = input("Enter data (string): ")
                 hash_table.insert(key, data)
                 print(f"Successfully inserted key {key} with data: '{data}'")
-            except ValueError:
-                print("Invalid input! Key must be an integer.")
-                
-        elif choice == '2':
-            # Retrieve operation
-            try:
+
+            elif choice == '2':
+                # Retrieve operation
                 key = int(input("Enter key to retrieve: "))
                 result = hash_table.retrieve(key)
                 if result is not None:
                     print(f"Key {result[0]} found with data: '{result[1]}'")
                 else:
                     print(f"Key {key} not found in the hash table.")
-            except ValueError:
-                print("Invalid input! Key must be an integer.")
-            except EmptyHash as e:
-                print(f"Error: {e}")
-                
-        elif choice == '3':
-            # Delete operation
-            try:
+
+            elif choice == '3':
+                # Delete operation
                 key = int(input("Enter key to delete: "))
                 hash_table.delete(key)
                 print(f"Attempted to delete key {key}")
-            except ValueError:
-                print("Invalid input! Key must be an integer.")
-                
-        elif choice == '4':
-            # Display current hash table structure
-            print("\nCurrent Hash Table Structure:")
-            hash_table.display()
-            
-        elif choice == '5':
-            # Show statistics
-            print(f"\nHash Table Statistics:")
-            print(f"Total elements: {hash_table.hlen()}")
-            print(f"Number of buckets: {hash_table.blen()}")
-            print(f"Load factor: {hash_table.hlen() / hash_table.blen():.2f}")
-            print(f"Table is empty: {hash_table.is_empty()}")
-            
-        elif choice == '6':
-            # Exit program
-            print("Thank you for using the Hash Table Management System!")
-            break
-            
-        else:
-            print("Invalid choice! Please enter a number between 1-6.")
+
+            elif choice == '4':
+                # Display hash structure
+                print("\nCurrent Hash Table Structure:")
+                hash_table.display()
+
+            elif choice == '5':
+                # Display statistics
+                print(f"\nHash Table Statistics:")
+                print(f"Total elements: {hash_table.hlen()}")
+                print(f"Number of buckets: {hash_table.blen()}")
+                print(f"Load factor: {hash_table.hlen() / hash_table.blen():.2f}")
+                print(f"Table is empty: {hash_table.is_empty()}")
+
+            elif choice == '6':
+                print("Thank you for using the Hash Table Management System!")
+                break
+
+            else:
+                print("Invalid choice! Please enter a number between 1–6.")
+
+        except ValueError:
+            print("Invalid input! Please enter an integer where required.")
+        except EmptyHash as e:
+            print(f"Error: {e}")
+        except Exception as e:
+            # Unexpected runtime errors
+            print(f"Unexpected error occurred: {e}")
+
+
